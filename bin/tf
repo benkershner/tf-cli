@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+
+from pytf import PyTF
+from sys import argv, exit
+
+def main():
+    pytf = PyTF()
+    return pytf.main(argv)
+
+if __name__ == '__main__':
+    sys.exit(main())

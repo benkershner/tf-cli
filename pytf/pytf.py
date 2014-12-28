@@ -1,11 +1,21 @@
 from .util import errmsg, outmsg
-from ConfigParser import ConfigParser
+from ConfigParser import ConfigParser, NoSectionError
 from argparse import ArgumentParser
 from inspect import getargspec
 from json import dumps
+from os import environ
+from os.path import expanduser
 from re import match
 from sys import exit, modules
 import requests
+
+
+class InvalidCredentialsError(Exception):
+    def __init__(self, value='Unable to retrieve ThingFabric credentials.'):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)
 
 
 class APIEndpoint(object):
@@ -87,13 +97,25 @@ class PyTF(object):
     def __init__(self, access_key=None, secret_key=None,
                  url='https://q.thingfabric.com/r/'):
         config = ConfigParser()
-        config.read('/Users/ben/.tf')
+        config.read(expanduser("~/.tf"))
 
         if access_key is None:
-            access_key = config.get('ThingFabric', 'access_key')
+            if 'TF_ACCESS_KEY' in environ:
+                access_key = environ['TF_ACCESS_KEY']
+            else:
+                try:
+                    access_key = config.get('ThingFabric', 'access_key')
+                except NoSectionError:
+                    raise InvalidCredentialsError()
 
         if secret_key is None:
-            secret_key = config.get('ThingFabric', 'secret_key')
+            if 'TF_SECRET_KEY' in environ:
+                secret_key = environ['TF_SECRET_KEY']
+            else:
+                try:
+                    secret_key = config.get('ThingFabric', 'secret_key')
+                except NoSectionError:
+                    raise InvalidCredentialsError()
 
         self.access_key = access_key
         self.secret_key = secret_key
@@ -143,7 +165,11 @@ class PyTF(object):
                  data=data,
                  auth=(self.access_key, self.secret_key))
 
-        return (r.json(), r.ok)
+        try:
+            result = r.json()
+        except ValueError:
+            result = r.text
+        return (result, r.ok)
 
     def _print_help(self):
         """

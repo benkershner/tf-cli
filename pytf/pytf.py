@@ -94,8 +94,7 @@ class PyTF(object):
             'nargs': '+',
             'help': 'attributes (you can specify more than one)'}}
 
-    def __init__(self, access_key=None, secret_key=None,
-                 url='https://q.thingfabric.com/r/'):
+    def __init__(self, access_key=None, secret_key=None, url=None):
         config = ConfigParser()
         config.read(expanduser("~/.tf"))
 
@@ -116,6 +115,15 @@ class PyTF(object):
                     secret_key = config.get('ThingFabric', 'secret_key')
                 except NoSectionError:
                     raise InvalidCredentialsError()
+
+        if url is None:
+            if 'TF_URL' in environ:
+                url = environ['TF_URL']
+            else:
+                try:
+                    url = config.get('ThingFabric', 'url')
+                except NoSectionError:
+                    url = 'https://q.thingfabric.com/r/'
 
         self.access_key = access_key
         self.secret_key = secret_key

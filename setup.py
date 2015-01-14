@@ -5,7 +5,7 @@ from setuptools import setup
 requires = ['requests>=2.0']
 
 setup(name='pytf',
-      version='0.1',
+      version='0.2',
       description='2lemetry ThingFabric Command Line Interface',
       url='http://github.com/benkershner/tf-cli',
       author='Ben Kershner',
